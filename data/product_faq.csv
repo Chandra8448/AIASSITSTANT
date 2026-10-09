@@ -1,0 +1,9 @@
+faq_id,topic,question,answer
+faq-01,warranty,What does the warranty cover?,The sample catalog products include a one-year manufacturer warranty for hardware defects. Accidental damage and consumables are excluded; check the seller's final terms before purchase.
+faq-02,returns,Can I return a laptop?,The illustrative policy allows a return request within seven days for eligible products in original condition. Actual seller and marketplace return terms may differ.
+faq-03,delivery,How long does delivery take?,Delivery estimates are listed per product in the sample catalog and are measured in business days. The estimate is illustrative and is not a live courier promise.
+faq-04,battery,How should I compare battery life?,"Battery-hour figures are manufacturer-style estimates under light use. Brightness, video calls, workload and battery age can reduce real-world runtime."
+faq-05,machine-learning,Can these laptops run machine learning?,"Laptops with 16 GB RAM can support Python, notebooks and small introductory machine-learning workloads. Larger model training is usually better suited to cloud notebooks or dedicated compute."
+faq-06,upgrades,Can I upgrade memory or storage?,Upgradeability depends on the exact model and configuration. Confirm whether memory is soldered and whether an SSD slot is available with the manufacturer before buying.
+faq-07,discounts,Are these discounts real?,Prices and discounts in this demo are illustrative sample data for learning. They are not live offers and should not be treated as a current quotation.
+faq-08,stock,Is the inventory live?,No. Stock counts and delivery estimates come from a local CSV file and are included to demonstrate inventory checks. They do not represent a retailer's live inventory.

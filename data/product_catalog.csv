@@ -1,0 +1,10 @@
+product_id,name,brand,price_inr,processor,ram_gb,storage,battery_hours,stock,delivery_days,discount_pct,weight_kg,graphics,best_for,description
+LT-101,IdeaPad Slim 5,Lenovo,57990,Intel Core i5-13420H,16,512 GB SSD,7.5,8,3,5,1.46,Integrated,"Python programming, online classes, everyday productivity","Balanced performance with a comfortable keyboard and a 1080p webcam."
+LT-102,Inspiron 14,Riverton,59990,AMD Ryzen 7 7730U,16,1 TB SSD,8.0,5,4,3,1.54,Integrated,"Python programming, multitasking, online classes","Efficient processor, generous storage and a bright 14-inch display."
+LT-103,Swift Go 14,Acer,54990,Intel Core Ultra 5 125H,16,512 GB SSD,9.0,3,2,4,1.32,Integrated,"Machine learning basics, travel, online classes","Lightweight build with long rated battery life and a color-accurate display."
+LT-104,Vivobook 15,ASUS,47990,AMD Ryzen 5 7530U,16,512 GB SSD,7.0,12,3,6,1.70,Integrated,"Python programming, student use, everyday productivity","Good-value 16 GB configuration for coursework and general development."
+LT-105,ThinkBook 16,Lenovo,63990,Intel Core i5-13420H,16,512 GB SSD,6.5,4,5,5,1.80,Integrated,"Python programming, multitasking, large display","Larger 16-inch workspace with a fast processor and business-focused ports."
+LT-106,Modern 14,MSI,52990,AMD Ryzen 5 7530U,8,512 GB SSD,8.5,0,6,7,1.40,Integrated,"Online classes, travel, everyday productivity","Portable design and a long rated battery; currently out of stock."
+LT-107,LOQ 15,Lenovo,69990,AMD Ryzen 5 7640HS,16,512 GB SSD,5.0,2,5,4,2.40,Dedicated,"Machine learning basics, gaming, Python programming","Dedicated graphics can help with entry-level GPU workloads; heavier ML training is better on cloud hardware."
+LT-108,Book 2,Samsung,56990,Intel Core i5-1235U,16,512 GB SSD,8.0,6,4,0,1.55,Integrated,"Online classes, Python programming, portability","Clean design with a vivid display and a useful mix of everyday features."
+LT-109,TravelMate P2,Acer,44990,Intel Core i3-1315U,8,512 GB SSD,10.0,9,2,5,1.60,Integrated,"Online classes, battery life, student use","Affordable study laptop with an especially long rated battery life."
