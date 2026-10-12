@@ -1,8 +1,8 @@
-# Agentic AI Shopping Assistant
+# Common Ground: Shopping and Banking Assistant
 
-A Streamlit laptop-shopping demo using LangChain tools, a LangGraph workflow, a local CSV catalog, Chroma FAQ retrieval, and an optional OpenAI model for grounded explanations.
+A Streamlit demo with a laptop-shopping assistant and a smart banking support agent. The shopping assistant uses LangChain tools, a LangGraph workflow, a local CSV catalog, and Chroma FAQ retrieval. The banking assistant uses a single LangGraph tool-calling agent with LangChain tools and a local SQLite database of fictional sample customers.
 
-All prices, stock counts, discounts, and delivery estimates are illustrative. The cart is simulated and never places an order.
+All product and banking information is illustrative. The cart is simulated. The banking eligibility check is a sample affordability estimate, not a bank decision; submitted applications are saved locally with a `submitted_for_review` status and are not loan approvals.
 
 ## Run locally
 
@@ -14,7 +14,19 @@ Copy-Item .env.example .env
 streamlit run app.py
 ```
 
-The app works without an OpenAI API key: shopping decisions use the local catalog and deterministic scoring, and FAQ answers use local Chroma retrieval. To enable OpenAI-written explanations, add `OPENAI_API_KEY` to `.env`. The model only phrases explanations from catalog facts; search, stock and budget decisions still come from the local tools.
+The app works without an OpenAI API key: shopping decisions use the local catalog and deterministic scoring, FAQ answers use local Chroma retrieval, and banking uses its deterministic local demo flow. Add `OPENAI_API_KEY` to `.env` to enable OpenAI-written shopping explanations and model-directed banking tool selection. Set `OPENAI_MODEL` to select a compatible chat model.
+
+## Banking assistant
+
+Open the **Banking support demo** tab and select one of the fictional sample customers. The prefilled example requests ₹5,00,000 over three years; the agent uses a 12% illustrative annual rate, retrieves the masked sample account, calculates the EMI, and checks affordability against the sample salary and existing EMI. The sample eligibility rule limits total monthly debt to 50% of the sample salary.
+
+The agent can calculate, retrieve, and assess, but it cannot authorize its own application submission. The app displays the application details and requires the customer to press **Confirm and submit loan application**. The backend then creates a short-lived, one-use approval code and rechecks eligibility before saving the application. Only a masked account number is displayed. The local SQLite database is created at `data/banking_demo.sqlite3` on first banking use and is ignored by Git.
+
+The module's tool and confirmation flow tests can be run with:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
 ## Deploy to Render
 
@@ -30,6 +42,9 @@ The sample catalog and FAQ CSVs are included in the deployment. Render's local f
 ## Project layout
 
 - `app.py`: Streamlit UI, LangChain tools, LangGraph agents, and Chroma FAQ retrieval.
+- `banking_agent.py`: sample banking data service, LangChain tools, and the LangGraph banking agent.
+- `tests/test_banking_agent.py`: banking EMI, eligibility, and confirmation-gate tests.
 - `data/product_catalog.csv`: sample products and inventory.
 - `data/product_faq.csv`: source material for FAQ retrieval.
+- `data/banking_demo.sqlite3`: generated fictional banking demo data and submitted applications.
 - `.chroma/`: local Chroma database created on first FAQ search.

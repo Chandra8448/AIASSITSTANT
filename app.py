@@ -14,6 +14,16 @@ from dotenv import load_dotenv
 from langchain_core.tools import tool
 from langgraph.graph import END, START, StateGraph
 
+from banking_agent import (
+    BANKING_SERVICE,
+    DEMO_ANNUAL_INTEREST_RATE,
+    calculate_loan_emi,
+    check_loan_eligibility,
+    create_banking_agent,
+    get_account_details,
+    submit_loan_application,
+)
+
 load_dotenv()
 
 ROOT = Path(__file__).parent
@@ -329,6 +339,259 @@ def _render_confirmation() -> None:
         st.rerun()
 
 
+def _parse_banking_request(request: str) -> tuple[int | None, int | None]:
+    lakh_match = re.search(
+        r"(?:loan(?:\s+(?:of|amount(?:\s+of)?))?\s*)?₹?\s*([\d.]+)\s*(?:lakh|lakhs|lac|lacs)\b",
+        request,
+        re.IGNORECASE,
+    )
+    if lakh_match:
+        amount_inr = round(float(lakh_match.group(1)) * 100_000)
+    else:
+        amount_match = re.search(
+            r"(?:personal\s+)?loan(?:\s+(?:of|amount(?:\s+of)?))?\s*(?:₹|rs\.?\s*)?([\d,]+)",
+            request,
+            re.IGNORECASE,
+        )
+        amount_inr = (
+            int(amount_match.group(1).replace(",", "")) if amount_match else None
+        )
+
+    number_words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+    term_match = re.search(
+        r"\b(\d+|one|two|three|four|five)\s*(years?|yrs?|months?|mos?)\b",
+        request,
+        re.IGNORECASE,
+    )
+    tenure_months = None
+    if term_match:
+        quantity = number_words.get(term_match.group(1).lower())
+        if quantity is None:
+            quantity = int(term_match.group(1))
+        unit = term_match.group(2).lower()
+        tenure_months = quantity * 12 if unit.startswith(("year", "yr")) else quantity
+    return amount_inr, tenure_months
+
+
+@st.cache_resource
+def _get_banking_agent():
+    return create_banking_agent()
+
+
+def _message_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(
+            str(block.get("text", ""))
+            for block in content
+            if isinstance(block, dict) and block.get("text")
+        )
+    return str(content)
+
+
+def _render_banking_assistant() -> None:
+    st.markdown("### Smart banking support")
+    st.caption(
+        "A single LangGraph agent coordinates LangChain banking tools. "
+        "This training demo uses fictional sample customers and a 12% illustrative rate."
+    )
+    customer_labels = {
+        "CUST1001 — Aarav Mehta (salary ₹60,000; existing EMI ₹5,000)": "CUST1001",
+        "CUST1002 — Diya Kapoor (salary ₹35,000; existing EMI ₹8,000)": "CUST1002",
+    }
+    with st.form("banking-request"):
+        selected_customer = st.selectbox("Sample customer account", list(customer_labels))
+        request = st.text_area(
+            "What would you like help with?",
+            value=(
+                "I want to apply for a personal loan of ₹5,00,000 for three years. "
+                "My monthly salary is ₹60,000, and I already pay ₹5,000 as an EMI "
+                "for another loan. Calculate my monthly EMI, check my loan eligibility, "
+                "retrieve my account details, and help me submit a loan application if I qualify."
+            ),
+            height=150,
+        )
+        assess = st.form_submit_button("Assess my loan request", type="primary")
+
+    if assess:
+        st.session_state.banking_result = None
+        amount_inr, tenure_months = _parse_banking_request(request)
+        missing = []
+        if amount_inr is None:
+            missing.append("loan amount")
+        if tenure_months is None:
+            missing.append("repayment term (for example, 36 months or three years)")
+        if missing:
+            st.session_state.banking_missing_info = (
+                "Please provide the " + " and ".join(missing) + " before I can assess the request."
+            )
+        else:
+            st.session_state.banking_missing_info = None
+            customer_id = customer_labels[selected_customer]
+            agent_text = ""
+            tool_trace: list[tuple[str, str]] = []
+            try:
+                if os.getenv("OPENAI_API_KEY", "").strip():
+                    with st.spinner("The banking agent is coordinating the requested tools..."):
+                        agent_result = _get_banking_agent().invoke(
+                            {
+                                "messages": [
+                                    (
+                                        "user",
+                                        f"Customer request: {request}\n"
+                                        f"Selected sample customer ID: {customer_id}\n"
+                                        f"Loan amount: ₹{amount_inr:,}\n"
+                                        f"Repayment term: {tenure_months} months\n"
+                                        f"Illustrative annual interest rate: {DEMO_ANNUAL_INTEREST_RATE}%\n"
+                                        "Assess the request and do not submit an application.",
+                                    )
+                                ]
+                            }
+                        )
+                    for message in agent_result.get("messages", []):
+                        if getattr(message, "type", "") == "tool":
+                            tool_trace.append((message.name, _message_text(message.content)))
+                        elif getattr(message, "type", "") == "ai" and message.content:
+                            agent_text = _message_text(message.content)
+                else:
+                    st.info(
+                        "OPENAI_API_KEY is not set, so this run uses the same local banking tools "
+                        "in a deterministic demo flow. Add a key to enable model-directed tool selection."
+                    )
+
+                account = json.loads(
+                    get_account_details.invoke({"customer_id": customer_id})
+                )
+                emi = json.loads(
+                    calculate_loan_emi.invoke(
+                        {
+                            "loan_amount": amount_inr,
+                            "tenure_months": tenure_months,
+                            "annual_interest_rate": DEMO_ANNUAL_INTEREST_RATE,
+                        }
+                    )
+                )
+                eligibility = json.loads(
+                    check_loan_eligibility.invoke(
+                        {
+                            "customer_id": customer_id,
+                            "loan_amount": amount_inr,
+                            "tenure_months": tenure_months,
+                            "annual_interest_rate": DEMO_ANNUAL_INTEREST_RATE,
+                        }
+                    )
+                )
+                st.session_state.banking_result = {
+                    "customer_id": customer_id,
+                    "request": request,
+                    "loan_amount": amount_inr,
+                    "tenure_months": tenure_months,
+                    "account": account,
+                    "emi": emi,
+                    "eligibility": eligibility,
+                    "agent_text": agent_text,
+                    "tool_trace": tool_trace,
+                    "application": None,
+                }
+            except Exception as error:
+                st.error(f"The banking assessment could not be completed: {error}")
+
+    missing_info = st.session_state.get("banking_missing_info")
+    if missing_info:
+        st.info(missing_info)
+
+    result = st.session_state.get("banking_result")
+    if not result:
+        return
+
+    account = result["account"]
+    eligibility = result["eligibility"]
+    st.markdown("#### Assessment summary")
+    metrics = st.columns(3)
+    metrics[0].metric("Estimated monthly EMI", _format_inr(result["emi"]["monthly_emi_inr"]))
+    metrics[1].metric(
+        "Preliminary eligibility",
+        "Meets demo check" if eligibility["eligible"] else "Does not meet demo check",
+    )
+    metrics[2].metric(
+        "Total monthly debt",
+        _format_inr(eligibility["total_monthly_debt_inr"]),
+        f"{eligibility['debt_to_income_ratio_pct']}% of sample salary",
+    )
+    st.caption(
+        f"Rate: {DEMO_ANNUAL_INTEREST_RATE:.1f}% illustrative annual rate · "
+        f"Term: {result['tenure_months']} months · "
+        f"Existing EMI: {_format_inr(account['existing_emi_inr'])}"
+    )
+    with st.expander("Retrieved sample account details"):
+        st.write(
+            f"**{account['full_name']}** · {account['customer_id']} · "
+            f"{account['account_type']} account {account['masked_account_number']}"
+        )
+        st.write(
+            f"Illustrative balance: {_format_inr(account['balance_inr'])} · "
+            f"Sample monthly salary: {_format_inr(account['monthly_salary_inr'])}"
+        )
+        st.caption(account["data_notice"])
+    st.info(eligibility["decision"])
+
+    if result["agent_text"]:
+        st.markdown("#### Banking agent")
+        st.write(result["agent_text"])
+    elif not os.getenv("OPENAI_API_KEY", "").strip():
+        st.markdown(
+            "**Demo response:** The sample account and preliminary affordability "
+            "check are shown above. This estimate is not a loan approval."
+        )
+    if result["tool_trace"]:
+        with st.expander("Agent tool results"):
+            for tool_name, tool_output in result["tool_trace"]:
+                st.markdown(f"**{tool_name}**")
+                st.code(tool_output, language="json")
+
+    application = result.get("application")
+    if application:
+        st.success(
+            f"Application {application['application_id']} submitted for review. "
+            "This is not a loan approval."
+        )
+    elif eligibility["eligible"]:
+        st.warning(
+            f"Review the ₹{result['loan_amount']:,} request and estimated EMI above. "
+            "No application has been submitted."
+        )
+        if st.button(
+            "Confirm and submit loan application",
+            type="primary",
+            key=f"confirm-loan-{result['customer_id']}",
+        ):
+            try:
+                confirmation_code = BANKING_SERVICE.create_confirmation_code(
+                    result["customer_id"],
+                    result["loan_amount"],
+                    result["tenure_months"],
+                    DEMO_ANNUAL_INTEREST_RATE,
+                )
+                application = json.loads(
+                    submit_loan_application.invoke(
+                        {
+                            "customer_id": result["customer_id"],
+                            "loan_amount": result["loan_amount"],
+                            "tenure_months": result["tenure_months"],
+                            "annual_interest_rate": DEMO_ANNUAL_INTEREST_RATE,
+                            "confirmation_code": confirmation_code,
+                        }
+                    )
+                )
+                result["application"] = application
+                st.rerun()
+            except Exception as error:
+                st.error(f"The loan application could not be submitted: {error}")
+    else:
+        st.warning("The sample affordability check did not pass; no application can be submitted.")
+
+
 def _render_results(request: str) -> None:
     result = st.session_state.get("shopping_result")
     if st.session_state.get("shopping_result_request") != request or result is None:
@@ -459,7 +722,9 @@ def main() -> None:
     st.sidebar.caption("Sample catalog · prices and stock are illustrative, not live listings.")
     _render_cart()
 
-    catalog_tab, faq_tab = st.tabs(["Laptop finder", "Product FAQ"])
+    catalog_tab, faq_tab, banking_tab = st.tabs(
+        ["Laptop finder", "Product FAQ", "Banking support demo"]
+    )
     with catalog_tab:
         if not request.strip():
             st.info("Add a shopping brief to get started.")
@@ -483,6 +748,8 @@ def main() -> None:
                                 st.write(source)
                 except Exception as error:
                     st.error(f"The FAQ search could not complete: {error}")
+    with banking_tab:
+        _render_banking_assistant()
 
 
 if __name__ == "__main__":

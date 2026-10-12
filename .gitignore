@@ -2,3 +2,6 @@
 .venv/
 __pycache__/
 .chroma/
+data/banking_demo.sqlite3
+data/banking_demo.sqlite3-shm
+data/banking_demo.sqlite3-wal
