@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from banking_agent import BankingService, calculate_loan_emi
+from banking_agent import BankingService, calculate_loan_emi, parse_loan_request
 
 
 class BankingServiceTests(unittest.TestCase):
@@ -69,6 +69,17 @@ class BankingServiceTests(unittest.TestCase):
             self.service.submit_loan_application(
                 "CUST1001", 400_000, 36, 12.0, confirmation_code
             )
+
+    def test_loan_request_parser_extracts_amount_and_term(self) -> None:
+        self.assertEqual(
+            parse_loan_request("I need a loan of ₹5,00,000 for three years."),
+            (500_000, 36),
+        )
+        self.assertEqual(
+            parse_loan_request("Please lend me ₹5 lakh over 36 months."),
+            (500_000, 36),
+        )
+        self.assertEqual(parse_loan_request("Can I borrow?"), (None, None))
 
 
 if __name__ == "__main__":

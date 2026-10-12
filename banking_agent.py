@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import secrets
 import sqlite3
 import uuid
@@ -69,6 +70,41 @@ def _calculate_emi(
         return round(loan_amount / tenure_months, 2)
     factor = (1 + monthly_rate) ** tenure_months
     return round(loan_amount * monthly_rate * factor / (factor - 1), 2)
+
+
+def parse_loan_request(request: str) -> tuple[int | None, int | None]:
+    """Extract an explicitly stated rupee amount and term from a request."""
+    lakh_match = re.search(
+        r"(?:loan(?:\s+(?:of|amount(?:\s+of)?))?\s*)?₹?\s*([\d.]+)\s*(?:lakh|lakhs|lac|lacs)\b",
+        request,
+        re.IGNORECASE,
+    )
+    if lakh_match:
+        amount_inr = round(float(lakh_match.group(1)) * 100_000)
+    else:
+        amount_match = re.search(
+            r"(?:personal\s+)?loan(?:\s+(?:of|amount(?:\s+of)?))?\s*(?:₹|rs\.?\s*)?([\d,]+)",
+            request,
+            re.IGNORECASE,
+        )
+        amount_inr = (
+            int(amount_match.group(1).replace(",", "")) if amount_match else None
+        )
+
+    number_words = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+    term_match = re.search(
+        r"\b(\d+|one|two|three|four|five)\s*(years?|yrs?|months?|mos?)\b",
+        request,
+        re.IGNORECASE,
+    )
+    tenure_months = None
+    if term_match:
+        quantity = number_words.get(term_match.group(1).lower())
+        if quantity is None:
+            quantity = int(term_match.group(1))
+        unit = term_match.group(2).lower()
+        tenure_months = quantity * 12 if unit.startswith(("year", "yr")) else quantity
+    return amount_inr, tenure_months
 
 
 class BankingService:

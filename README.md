@@ -18,7 +18,13 @@ The app works without an OpenAI API key: shopping decisions use the local catalo
 
 ## Banking assistant
 
-Open the **Banking support demo** tab and select one of the fictional sample customers. The prefilled example requests ₹5,00,000 over three years; the agent uses a 12% illustrative annual rate, retrieves the masked sample account, calculates the EMI, and checks affordability against the sample salary and existing EMI. The sample eligibility rule limits total monthly debt to 50% of the sample salary.
+Run the dedicated banking-only experience with:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run banking_app.py
+```
+
+This entry point has no shopping brief, cart, or product tabs. The original combined shopping app still has a **Banking support demo** tab if you want the combined experience. Select one of the fictional sample customers in either banking experience. The prefilled example requests ₹5,00,000 over three years; the agent uses a 12% illustrative annual rate, retrieves the masked sample account, calculates the EMI, and checks affordability against the sample salary and existing EMI. The sample eligibility rule limits total monthly debt to 50% of the sample salary.
 
 The agent can calculate, retrieve, and assess, but it cannot authorize its own application submission. The app displays the application details and requires the customer to press **Confirm and submit loan application**. The backend then creates a short-lived, one-use approval code and rechecks eligibility before saving the application. Only a masked account number is displayed. The local SQLite database is created at `data/banking_demo.sqlite3` on first banking use and is ignored by Git.
 
@@ -42,6 +48,7 @@ The sample catalog and FAQ CSVs are included in the deployment. Render's local f
 ## Project layout
 
 - `app.py`: Streamlit UI, LangChain tools, LangGraph agents, and Chroma FAQ retrieval.
+- `banking_app.py`: standalone banking-only Streamlit UI.
 - `banking_agent.py`: sample banking data service, LangChain tools, and the LangGraph banking agent.
 - `tests/test_banking_agent.py`: banking EMI, eligibility, and confirmation-gate tests.
 - `data/product_catalog.csv`: sample products and inventory.
