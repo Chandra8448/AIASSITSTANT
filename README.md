@@ -34,6 +34,29 @@ The module's tool and confirmation flow tests can be run with:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
+## CrewAI travel planner
+
+Run the dedicated multi-agent travel experience with:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run travel_planner_app.py
+```
+
+The sequential CrewAI crew has a Travel Coordinator, Destination Research Agent,
+Hotel and Transport Agent, Budget Analyst, and Itinerary Planner. Task outputs
+are passed as context to downstream tasks. Public search (Wikipedia by default,
+or Tavily when `TAVILY_API_KEY` is configured), Open-Meteo weather/geocoding,
+and OSRM route tools provide external research. Weather is explicitly marked
+unavailable when travel dates exceed the forecast window. Hotel, intercity
+transport, local travel, meal, and activity prices are labeled mock estimates;
+no booking API is connected and nothing is reserved.
+
+Choose Ollama or OpenRouter in the app. Ollama needs a running local Ollama
+server and a locally installed model. OpenRouter requires `OPENROUTER_API_KEY`.
+Provider/model settings are in `.env.example`. If the initial standard estimate
+exceeds the budget, the planner runs a second CrewAI pass using lower-cost mock
+options and reports whether the revised estimate still exceeds the budget.
+
 ## Deploy to Render
 
 The included `render.yaml` defines a free Python web service, Streamlit's Render port binding, and a health check. To deploy it:
@@ -50,7 +73,10 @@ The sample catalog and FAQ CSVs are included in the deployment. Render's local f
 - `app.py`: Streamlit UI, LangChain tools, LangGraph agents, and Chroma FAQ retrieval.
 - `banking_app.py`: standalone banking-only Streamlit UI.
 - `banking_agent.py`: sample banking data service, LangChain tools, and the LangGraph banking agent.
+- `travel_planner_app.py`: dedicated Streamlit UI for the CrewAI travel planner.
+- `travel_planner.py`: travel request validation, external/mock tools, CrewAI agents/tasks, and budget revision.
 - `tests/test_banking_agent.py`: banking EMI, eligibility, and confirmation-gate tests.
+- `tests/test_travel_planner.py`: travel validation, cost calculation, and mock/forecast tests.
 - `data/product_catalog.csv`: sample products and inventory.
 - `data/product_faq.csv`: source material for FAQ retrieval.
 - `data/banking_demo.sqlite3`: generated fictional banking demo data and submitted applications.
