@@ -51,8 +51,11 @@ unavailable when travel dates exceed the forecast window. Hotel, intercity
 transport, local travel, meal, and activity prices are labeled mock estimates;
 no booking API is connected and nothing is reserved.
 
-Choose Ollama or OpenRouter in the app. Ollama needs a running local Ollama
-server and a locally installed model. OpenRouter requires `OPENROUTER_API_KEY`.
+Choose Ollama, OpenRouter, or OpenAI in the app. Ollama needs a running local
+Ollama server and a locally installed model. OpenRouter requires
+`OPENROUTER_API_KEY`; OpenAI requires `OPENAI_API_KEY`. For hosted deployments,
+add the matching key as an environment variable in the hosting provider and
+select that same provider in the app.
 Provider/model settings are in `.env.example`. If the initial standard estimate
 exceeds the budget, the planner runs a second CrewAI pass using lower-cost mock
 options and reports whether the revised estimate still exceeds the budget.

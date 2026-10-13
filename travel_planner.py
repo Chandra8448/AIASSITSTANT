@@ -14,6 +14,7 @@ import requests
 from crewai import Agent, Crew, LLM, Process, Task
 from crewai.tools import tool
 from litellm.exceptions import APIError
+from openai import APIError as OpenAIAPIError
 
 REQUEST_TIMEOUT_SECONDS = 12
 USER_AGENT = "ClaudePracticeTravelPlanner/1.0 (training demo)"
@@ -420,6 +421,16 @@ def _make_cached_tools(
 
 def _create_llm(provider: str, model: str | None = None) -> LLM:
     provider = provider.strip().lower()
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        if not api_key:
+            raise TravelPlannerError("Set OPENAI_API_KEY in the environment to use OpenAI.")
+        selected_model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        return LLM(
+            model=selected_model,
+            api_key=api_key,
+            temperature=0.2,
+        )
     if provider == "openrouter":
         api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
         if not api_key:
@@ -440,7 +451,7 @@ def _create_llm(provider: str, model: str | None = None) -> LLM:
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             temperature=0.2,
         )
-    raise TravelPlannerError("Choose either the OpenRouter or Ollama LLM provider.")
+    raise TravelPlannerError("Choose OpenAI, OpenRouter, or Ollama as the LLM provider.")
 
 
 def _build_crew(
@@ -593,10 +604,12 @@ def _build_crew(
 def _kickoff(crew: Crew) -> str:
     try:
         return str(crew.kickoff())
-    except APIError as exc:
+    except (APIError, OpenAIAPIError) as exc:
         raise TravelPlannerError(
-            f"The selected LLM provider request failed ({type(exc).__name__}). "
-            "Check the provider key, model name, network connection, and account quota."
+            f"The selected LLM provider rejected or could not complete the request "
+            f"({type(exc).__name__}). Check that the key matches the selected provider "
+            "(OPENAI_API_KEY for OpenAI, OPENROUTER_API_KEY for OpenRouter), and verify "
+            "the model name, network connection, and account balance."
         ) from exc
 
 

@@ -9,6 +9,7 @@ from travel_planner import (
     TravelPlannerError,
     TravelRequest,
     _calculate_profile,
+    _create_llm,
     _make_cached_tools,
     calculate_expenses,
     generate_travel_plan,
@@ -36,6 +37,24 @@ class TravelPlannerTests(unittest.TestCase):
         validate_travel_request(self.request, self.today)
         self.assertEqual(self.request.duration_days, 4)
         self.assertEqual(self.request.nights, 3)
+
+    def test_creates_openai_llm_from_openai_key(self) -> None:
+        with (
+            patch.dict("os.environ", {"OPENAI_API_KEY": "test-openai-key"}, clear=True),
+            patch("travel_planner.LLM") as llm_factory,
+        ):
+            _create_llm("openai")
+
+        llm_factory.assert_called_once_with(
+            model="gpt-4o-mini",
+            api_key="test-openai-key",
+            temperature=0.2,
+        )
+
+    def test_openai_provider_requires_openai_key(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            with self.assertRaisesRegex(TravelPlannerError, "OPENAI_API_KEY"):
+                _create_llm("openai")
 
     def test_same_day_trip_has_no_hotel_night(self) -> None:
         day_trip = TravelRequest(

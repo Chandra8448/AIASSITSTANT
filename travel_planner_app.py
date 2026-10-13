@@ -34,13 +34,28 @@ with st.form("travel_request"):
             ["Sightseeing", "Shopping", "Adventure", "Relaxation", "Food", "Culture", "Nature"],
             default=["Sightseeing", "Food"],
         )
-        provider = st.selectbox("LLM provider", ["Ollama", "OpenRouter"])
-        provider_key = provider.lower()
-        default_model = (
-            os.getenv("OLLAMA_MODEL", "ollama/llama3.1")
-            if provider_key == "ollama"
-            else os.getenv("OPENROUTER_MODEL", "openrouter/openai/gpt-4o-mini")
+        providers = ["Ollama", "OpenRouter", "OpenAI"]
+        preferred_provider = (
+            "OpenAI"
+            if os.getenv("OPENAI_API_KEY", "").strip()
+            else "OpenRouter"
+            if os.getenv("OPENROUTER_API_KEY", "").strip()
+            else "Ollama"
         )
+        provider = st.selectbox(
+            "LLM provider",
+            providers,
+            index=providers.index(preferred_provider),
+        )
+        provider_key = provider.lower()
+        model_defaults = {
+            "ollama": os.getenv("OLLAMA_MODEL", "ollama/llama3.1"),
+            "openrouter": os.getenv(
+                "OPENROUTER_MODEL", "openrouter/openai/gpt-4o-mini"
+            ),
+            "openai": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        }
+        default_model = model_defaults[provider_key]
         model = st.text_input("Model", value=default_model)
     submitted = st.form_submit_button("Plan my trip", type="primary")
 
