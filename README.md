@@ -60,6 +60,38 @@ Provider/model settings are in `.env.example`. If the initial standard estimate
 exceeds the budget, the planner runs a second CrewAI pass using lower-cost mock
 options and reports whether the revised estimate still exceeds the budget.
 
+## SmartDesk AI desktop document assistant
+
+SmartDesk AI is a separate native Tkinter desktop app. It reads TXT and PDF files,
+answers questions and summarizes document text through the local Ollama service,
+and saves the conversation to a local text file. It does not call a cloud AI API.
+PDFs must contain selectable text; OCR for scanned documents is not included.
+
+1. Install [Ollama for Windows](https://ollama.com/download/windows), then open
+   PowerShell and download the default model:
+
+   ```powershell
+   ollama pull llama3.2
+   ```
+
+2. Install the desktop app's Python dependencies:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install requests "pypdf>=5,<7"
+   ```
+
+3. Launch the desktop window from the project directory:
+
+   ```powershell
+   .\.venv\Scripts\python.exe smartdesk_ai.py
+   ```
+
+Choose a document, enter a question, or select **Summarize document**. Use
+**Save conversation** to write the chat to a `.txt` file. The default model is
+`llama3.2`; you can enter another model already installed in Ollama. The GUI
+keeps responding while Ollama generates. Start the Ollama application if a
+connection error appears.
+
 ## Deploy to Render
 
 The included `render.yaml` defines a free Python web service, Streamlit's Render port binding, and a health check. To deploy it:
@@ -78,8 +110,10 @@ The sample catalog and FAQ CSVs are included in the deployment. Render's local f
 - `banking_agent.py`: sample banking data service, LangChain tools, and the LangGraph banking agent.
 - `travel_planner_app.py`: dedicated Streamlit UI for the CrewAI travel planner.
 - `travel_planner.py`: travel request validation, external/mock tools, CrewAI agents/tasks, and budget revision.
+- `smartdesk_ai.py`: native Tkinter desktop assistant for local TXT/PDF question answering and summaries.
 - `tests/test_banking_agent.py`: banking EMI, eligibility, and confirmation-gate tests.
 - `tests/test_travel_planner.py`: travel validation, cost calculation, and mock/forecast tests.
+- `tests/test_smartdesk_ai.py`: SmartDesk document, prompt, and Ollama error handling tests.
 - `data/product_catalog.csv`: sample products and inventory.
 - `data/product_faq.csv`: source material for FAQ retrieval.
 - `data/banking_demo.sqlite3`: generated fictional banking demo data and submitted applications.

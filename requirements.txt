@@ -6,4 +6,5 @@ langgraph>=0.2,<2
 chromadb>=0.5,<2
 python-dotenv>=1.0,<2
 requests>=2.31,<3
+pypdf>=5,<7
 crewai[litellm]>=1.9,<2
