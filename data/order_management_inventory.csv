@@ -1,0 +1,10 @@
+product_id,product_name,stock,alternative_product_ids
+DL100,Desk Lamp,24,DL101
+DL101,Adjustable Desk Lamp,8,
+WH200,Wireless Headphones,12,WH201
+WH201,NoiseLite Headphones,5,
+SH300,Studio Headphones,0,SH301
+SH301,Studio Headphones Lite,7,
+CM400,Coffee Maker,0,
+TB500,Travel Backpack,18,TB501
+TB501,Compact Travel Backpack,6,

@@ -60,6 +60,29 @@ Provider/model settings are in `.env.example`. If the initial standard estimate
 exceeds the budget, the planner runs a second CrewAI pass using lower-cost mock
 options and reports whether the revised estimate still exceeds the budget.
 
+## CrewAI e-commerce order support
+
+Run the separate multi-agent order support demo with:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run order_management_app.py
+```
+
+The sequential CrewAI workflow uses a Customer Support Agent, Inventory Agent,
+Delivery Agent, and Resolution Agent. Order, inventory, and tracking lookups use
+the fictional local CSV records in `data/order_management_orders.csv` and
+`data/order_management_inventory.csv`; no real store, carrier, or customer
+account is connected. The resolution agent applies human-escalation guidance for
+unverified orders, lost or exceptional shipments, repeated support issues,
+delivered-but-missing packages, explicit requests for a person, and unavailable
+items with no in-stock alternative. Refunds, replacements, and order changes
+require a human and are never made by this demo.
+
+Choose Ollama to use the local model (default: `ollama/llama3.2`), or select an
+API provider with its corresponding API key configured. Sample orders include
+delivered (`ORD1001`), delayed (`ORD1025`), out-of-stock item (`ORD1030`), and
+lost/repeated-issue escalation (`ORD1040`).
+
 ## SmartDesk AI desktop document assistant
 
 SmartDesk AI is a separate native Tkinter desktop app. It reads TXT and PDF files,
@@ -110,8 +133,11 @@ The sample catalog and FAQ CSVs are included in the deployment. Render's local f
 - `banking_agent.py`: sample banking data service, LangChain tools, and the LangGraph banking agent.
 - `travel_planner_app.py`: dedicated Streamlit UI for the CrewAI travel planner.
 - `travel_planner.py`: travel request validation, external/mock tools, CrewAI agents/tasks, and budget revision.
+- `order_management_app.py`: Streamlit UI for the CrewAI e-commerce order support demo.
+- `order_management.py`: order, inventory, tracking tools, four-agent orchestration, and escalation policy.
 - `smartdesk_ai.py`: native Tkinter desktop assistant for local TXT/PDF question answering and summaries.
 - `tests/test_banking_agent.py`: banking EMI, eligibility, and confirmation-gate tests.
+- `tests/test_order_management.py`: order fixtures, inventory, agent-provider setup, and escalation policy tests.
 - `tests/test_travel_planner.py`: travel validation, cost calculation, and mock/forecast tests.
 - `tests/test_smartdesk_ai.py`: SmartDesk document, prompt, and Ollama error handling tests.
 - `data/product_catalog.csv`: sample products and inventory.

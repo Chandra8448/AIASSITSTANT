@@ -1,0 +1,6 @@
+order_id,customer_name,product_id,product_name,quantity,order_date,expected_delivery,revised_delivery,shipment_status,tracking_id,current_location,tracking_note,issue_count
+ORD1001,Avery Morgan,DL100,Desk Lamp,1,2026-10-08,2026-10-14,,delivered,TRK-1001,Delivered to front desk,Carrier marked the parcel delivered,0
+ORD1025,Jordan Lee,WH200,Wireless Headphones,1,2026-10-07,2026-10-14,2026-10-17,delayed,TRK-1025,Regional sorting facility,Weather disruption caused a transit delay,0
+ORD1030,Sam Taylor,SH300,Studio Headphones,1,2026-10-09,2026-10-16,,in_transit,TRK-1030,Central distribution hub,Shipment is moving through the network,0
+ORD1040,Riley Patel,CM400,Coffee Maker,1,2026-10-03,2026-10-10,,lost,TRK-1040,No recent scan,Carrier investigation opened after a missing scan,2
+ORD1050,Casey Chen,TB500,Travel Backpack,1,2026-10-10,2026-10-16,,in_transit,TRK-1050,North distribution hub,Shipment is on schedule,0
