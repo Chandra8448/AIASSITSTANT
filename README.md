@@ -16,6 +16,30 @@ streamlit run app.py
 
 The app works without an OpenAI API key: shopping decisions use the local catalog and deterministic scoring, FAQ answers use local Chroma retrieval, and banking uses its deterministic local demo flow. Add `OPENAI_API_KEY` to `.env` to enable OpenAI-written shopping explanations and model-directed banking tool selection. Set `OPENAI_MODEL` to select a compatible chat model.
 
+## Campus Café launch team
+
+Run the Campus Café multi-agent brief generator from PowerShell:
+
+```powershell
+ollama pull llama3.2
+.\.venv\Scripts\python.exe campus_cafe_crew.py
+```
+
+The sequential CrewAI team has a Market Researcher, Financial Analyst,
+Sustainability Officer, Marketing Writer, and Skeptical Reviewer. LangChain
+tools provide scholarly search, Wikipedia search, and constrained arithmetic.
+The researcher and sustainability officer cite sources and identify evidence
+limits; the analyst states all INR planning assumptions and calculator
+expressions. The final reviewed brief is written to `final_brief.md`, and the
+run-specific collaboration reflection is written to `collaboration_reflection.md`.
+
+Ollama must be installed and running locally with `llama3.2` downloaded. The
+default model runs locally; research tools make web requests for public sources,
+but the café program does not send document content or prompts to a hosted LLM.
+For a different provider, set `CAFE_LLM_PROVIDER` and its matching model/key in
+`.env` (see `.env.example`). The checked-in brief is a sourced example, not a
+claim that the live CrewAI generation has already been run.
+
 ## Banking assistant
 
 Run the dedicated banking-only experience with:
