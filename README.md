@@ -84,6 +84,35 @@ Provider/model settings are in `.env.example`. If the initial standard estimate
 exceeds the budget, the planner runs a second CrewAI pass using lower-cost mock
 options and reports whether the revised estimate still exceeds the budget.
 
+## Study Group Crew assignment
+
+Generate a topic study guide and quiz using four CrewAI agents:
+
+```powershell
+.\.venv\Scripts\python.exe study_group_crew.py "Photosynthesis"
+```
+
+The sequential crew has a Topic Researcher, Explainer, Quiz Maker, and
+Fact-Checker. The Topic Researcher and Fact-Checker use two LangChain tools:
+Wikipedia search and OpenAlex scholarly search. Task `context` passes research
+to the guide writer, then the guide to the quiz maker, and all prior outputs to
+the fact-checker. The reviewed study pack is saved as `study_group_output.md`;
+the assignment reflection is saved as `study_group_reflection.md`. The
+checked-in output is a prepared example and is not represented as live model
+output.
+
+Ollama is the default provider. Start Ollama and pull a model first, for example
+`ollama pull llama3.2`. Select a topic as the positional argument; optionally
+use `--provider openai` or `--provider openrouter` with the corresponding API
+key configured in `.env`. Research tools query public websites; the default
+LLM runs locally when using Ollama.
+
+Run the focused tests with:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_study_group_crew.py" -v
+```
+
 ## CrewAI e-commerce order support
 
 Run the separate multi-agent order support demo with:
